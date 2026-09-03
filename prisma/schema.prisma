@@ -1,0 +1,68 @@
+model Cliente {
+  id       Int    @id @default(autoincrement())
+  nome     String
+  email    String @unique
+  senha    String
+  telefone String
+
+  animais Animal[]
+
+  @@map("clientes")
+}
+
+model Animal {
+  id        Int     @id @default(autoincrement())
+  clienteId Int
+
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+
+  nome           String
+  especie        String
+  raca           String
+  dataNascimento DateTime
+
+  consultas Consulta[]
+
+  @@map("animais")
+}
+
+model Veterinario {
+  id            Int    @id @default(autoincrement())
+  nome          String
+  crmv          String @unique
+  especialidade String
+  email         String @unique
+
+  consultas Consulta[]
+
+  @@map("veterinarios")
+}
+
+model Consulta {
+  id            Int @id @default(autoincrement())
+  animalId      Int
+  veterinarioId Int
+
+  animal      Animal      @relation(fields: [animalId], references: [id])
+  veterinario Veterinario @relation(fields: [veterinarioId], references: [id])
+
+  dataHorario DateTime
+  status      String   @default("Agendada")
+
+  prontuario Prontuario?
+
+  @@map("consultas")
+}
+
+model Prontuario {
+  id         Int @id @default(autoincrement())
+  consultaId Int @unique
+
+  consulta Consulta @relation(fields: [consultaId], references: [id])
+
+  diagnostico String
+  prescricao  String
+  dataRetorno DateTime
+
+  @@map("prontuarios")
+}
