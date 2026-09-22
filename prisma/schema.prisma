@@ -1,68 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+  directUrl = env("DIRECT_URL")
+}
+
+model Usuario {
+  id          Int          @id @default(autoincrement())
+  nome        String
+  email       String       @unique
+  senha       String
+  tipo        String       // "RECEPCIONISTA" ou "VETERINARIO"
+  veterinario Veterinario?
+}
+
 model Cliente {
-  id       Int    @id @default(autoincrement())
-  nome     String
-  email    String @unique
-  senha    String
-  telefone String
-
-  animais Animal[]
-
-  @@map("clientes")
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cpf       String   @unique
+  email     String   @unique
+  telefone  String
+  animais   Animal[]
 }
 
 model Animal {
-  id        Int     @id @default(autoincrement())
-  clienteId Int
-
-  cliente Cliente @relation(fields: [clienteId], references: [id])
-
+  id             Int       @id @default(autoincrement())
+  clienteId      Int
   nome           String
   especie        String
   raca           String
   dataNascimento DateTime
 
-  consultas Consulta[]
-
-  @@map("animais")
+  cliente        Cliente   @relation(fields: [clienteId], references: [id])
+  consultas      Consulta[]
 }
 
 model Veterinario {
-  id            Int    @id @default(autoincrement())
-  nome          String
-  crmv          String @unique
+  id            Int       @id @default(autoincrement())
+  usuarioId     Int       @unique
+  crmv          String    @unique
+  email         String    @unique
   especialidade String
-  email         String @unique
 
-  consultas Consulta[]
-
-  @@map("veterinarios")
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  consultas     Consulta[]
 }
 
 model Consulta {
-  id            Int @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   animalId      Int
   veterinarioId Int
+  dataHorario   DateTime
+  status        String      // "AGENDADA", "CANCELADA", "CONCLUIDA"
 
-  animal      Animal      @relation(fields: [animalId], references: [id])
-  veterinario Veterinario @relation(fields: [veterinarioId], references: [id])
-
-  dataHorario DateTime
-  status      String   @default("Agendada")
-
-  prontuario Prontuario?
-
-  @@map("consultas")
+  animal        Animal       @relation(fields: [animalId], references: [id])
+  veterinario   Veterinario  @relation(fields: [veterinarioId], references: [id])
+  prontuario    Prontuario?
 }
 
 model Prontuario {
-  id         Int @id @default(autoincrement())
-  consultaId Int @unique
-
-  consulta Consulta @relation(fields: [consultaId], references: [id])
-
+  id          Int       @id @default(autoincrement())
+  consultaId  Int       @unique
   diagnostico String
   prescricao  String
   dataRetorno DateTime
 
-  @@map("prontuarios")
+  consulta    Consulta  @relation(fields: [consultaId], references: [id])
 }

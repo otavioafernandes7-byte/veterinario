@@ -1,83 +1,161 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
-const prisma = new PrismaClient();
+/// <reference types="node" />
+
+import bcrypt from 'bcryptjs'; 
+import { prisma } from '../src/config/prisma';
 
 async function main() {
-  console.log('Iniciando o seed da base de dados da VetClinic...');
 
-  // ===== VETERINÁRIOS =====
-  const vetAna = await prisma.veterinario.create({
-    data: { nome: 'Ana Souza', crmv: 'CRMV-RJ 12345', especialidade: 'Clínica Geral', email: 'ana.souza@vetclinic.com' },
-  });
-  const vetCarlos = await prisma.veterinario.create({
-    data: { nome: 'Carlos Lima', crmv: 'CRMV-RJ 67890', especialidade: 'Cirurgia', email: 'carlos.lima@vetclinic.com' },
-  });
-  console.log('Veterinários criados: Ana Souza (Clínica Geral), Carlos Lima (Cirurgia).');
+    console.log('Iniciando o seed da base de dados Clinica Veterinaria....');
+    
+    
+    const senhaCriptografada = await bcrypt.hash('senha123456789', 10);
 
-  // ===== CLIENTE =====
-  const senhaHash = await bcrypt.hash('123456', 10);
-  const cliente = await prisma.cliente.create({
-    data: {
-      nome: 'Cliente Teste',
-      email: 'cliente@teste.com',
-      senha: senhaHash,
-      telefone: '11999999999',
-    },
-  });
-  console.log('Cliente de teste criado (email: cliente@teste.com, senha: 123456).');
+    console.log('Cadastrando funcionarios...');
 
-  // ===== ANIMAIS =====
-  const animais = await prisma.animal.createMany({
-    data: [
-      { clienteId: cliente.id, nome: 'Rex', especie: 'Cachorro', raca: 'Labrador', dataNascimento: new Date('2020-05-10') },
-      { clienteId: cliente.id, nome: 'Mimi', especie: 'Gato', raca: 'Siamês', dataNascimento: new Date('2021-08-22') },
-      { clienteId: cliente.id, nome: 'Thor', especie: 'Cachorro', raca: 'Bulldog', dataNascimento: new Date('2019-01-15') },
-    ],
-  });
-  console.log(`${animais.count} animais cadastrados para o cliente teste.`);
+    await prisma.usuario.create({
+        data: {
+            nome: 'Luíza Gazzoni Tagliabui',
+            email: 'luiza.recepcao@clinica.com',
+            senha: senhaCriptografada,
+            tipo: 'RECEPCIONISTA',
+        },
+    });
 
-  // Recupera os animais para usar os IDs gerados
-  const animalRex = await prisma.animal.findFirst({ where: { nome: 'Rex', clienteId: cliente.id } });
-  const animalMimi = await prisma.animal.findFirst({ where: { nome: 'Mimi', clienteId: cliente.id } });
+    const usuarioVet1 = await prisma.usuario.create({
+        data: {
+            nome: 'Dr Tiago Gazzoni Tagliabui',
+            email: 'tiago.tagliabui@clinica.com',
+            senha: senhaCriptografada,
+            tipo: "VETERINARIO",
+            veterinario: {
+                create: {
+                    crmv: 'CRMV - RJ12345',
+                    email: 'tiago.tagliabui@clinica.com', 
+                    especialidade: 'Clinico Geral'
+                },
+            },
+        },
+    });
 
-  // ===== CONSULTAS =====
-  const consultaRex = await prisma.consulta.create({
-    data: {
-      animalId: animalRex.id,
-      veterinarioId: vetAna.id,
-      dataHorario: new Date('2026-09-10T14:00:00'),
-      status: 'Agendada',
-    },
-  });
-  const consultaMimi = await prisma.consulta.create({
-    data: {
-      animalId: animalMimi.id,
-      veterinarioId: vetCarlos.id,
-      dataHorario: new Date('2026-09-12T10:30:00'),
-      status: 'Concluida',
-    },
-  });
-  console.log('2 consultas criadas (1 agendada, 1 concluída).');
+    const vet1 = await prisma.veterinario.findUnique({
+        where: {
+            usuarioId: usuarioVet1.id
+        },
+    });
 
-  // ===== PRONTUÁRIO =====
-  await prisma.prontuario.create({
-    data: {
-      consultaId: consultaMimi.id,
-      diagnostico: 'Otite leve no ouvido esquerdo',
-      prescricao: 'Limpeza auricular e antibiótico por 7 dias',
-      dataRetorno: new Date('2026-09-19'),
-    },
-  });
-  console.log('Prontuário criado para a consulta concluída da Mimi.');
+    const usuarioVet2 = await prisma.usuario.create({
+        data: {
+            nome: 'Dra Fernanda Silva',
+            email: 'fer.vet@clinica.com',
+            senha: senhaCriptografada,
+            tipo: 'VETERINARIO',   
+            veterinario: {
+                create: {
+                    crmv: 'CRMV-RJ2222',
+                    email: 'fer.vet@clinica.com', 
+                    especialidade: 'Ortopedia',
+                },
+            },
+        },
+    });
 
-  console.log('Seed concluído com sucesso!');
+    const vet2 = await prisma.veterinario.findUnique({
+        where: { usuarioId: usuarioVet2.id }, 
+    });
+
+    console.log('Cadastrando clientes...');
+
+   
+    const cliente1 = await prisma.cliente.create({
+        data: {
+            nome: 'Mariana Oliveira',
+            cpf: '123.456.789-00',
+            email: 'mariana.oliveira@email.com',
+            telefone: '(11) 98888-7777',
+        },
+    });
+
+    const cliente2 = await prisma.cliente.create({
+        data: {
+            nome: 'Roberto Santos',
+            cpf: '987.654.321-11',
+            email: 'roberto.santos@email.com',
+            telefone: '(11) 97777-6666',
+        },
+    });
+
+    console.log('Cadastrando animais...');
+
+    const animal1 = await prisma.animal.create({
+        data: {
+            clienteId: cliente1.id,
+            nome: 'Thor',
+            especie: 'Cão',
+            raca: 'Golden Retriever',
+            dataNascimento: new Date('2022-03-15'),
+        },
+    });
+
+    const animal2 = await prisma.animal.create({
+        data: {
+            clienteId: cliente2.id,
+            nome: 'Mingau',
+            especie: 'Gato',
+            raca: 'Siamês',
+            dataNascimento: new Date('2023-08-20'),
+        },
+    });
+
+    const animal3 = await prisma.animal.create({
+        data: {
+            clienteId: cliente2.id,
+            nome: 'Luna',
+            especie: 'Cão',
+            raca: 'Poodle',
+            dataNascimento: new Date('2021-01-10'),
+        },
+    });
+
+    
+    console.log('Agendando consultas e gerando prontuários de exemplo...');
+
+    if (vet1) {
+        await prisma.consulta.create({
+            data: {
+                animalId: animal1.id,
+                veterinarioId: vet1.id,
+                dataHorario: new Date('2026-09-01T14:00:00Z'),
+                status: 'CONCLUIDA',
+                prontuario: {
+                    create: {
+                        diagnostico: 'Dermatite leve na região do dorso.',
+                        prescricao: 'Shampoo antisséptico 2x por semana durante 15 dias.',
+                        dataRetorno: new Date('2026-09-16T14:00:00Z'),
+                    },
+                },
+            },
+        });
+    }
+
+    if (vet2) {
+        await prisma.consulta.create({
+            data: {
+                animalId: animal2.id,
+                veterinarioId: vet2.id,
+                dataHorario: new Date('2026-09-12T10:30:00Z'),
+                status: 'AGENDADA',
+            },
+        });
+    }
+
+    console.log('Seed finalizado com sucesso!');
 }
 
 main()
-  .catch((erro) => {
-    console.error('Erro ao executar o seed:', erro);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+    .catch((e) => {
+        console.error('Erro ao executar o seed:', e);
+        process.exit(1);
+    }) 
+    .finally(async () => {
+        await prisma.$disconnect();
+    });
