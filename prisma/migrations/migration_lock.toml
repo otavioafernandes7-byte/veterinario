@@ -1,1 +1,1 @@
-printf 'provider = "postgresql"\n'
+provider = "postgresql"
