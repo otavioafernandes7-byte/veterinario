@@ -25,6 +25,7 @@ model Cliente {
   email     String   @unique
   telefone  String
   animais   Animal[]
+  senha     String
 }
 
 model Animal {
