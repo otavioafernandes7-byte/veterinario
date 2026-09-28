@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import * as veterinarioService from '../services/veterinario.service';
 
 export async function registrar(req: Request, res: Response): Promise<void> {
-  const { nome, crmv, especialidade, email } = req.body;
-  const veterinario = await veterinarioService.registrarVeterinario({ nome, crmv, especialidade, email });
+  const { nome, crmv, especialidade, email, senha } = req.body;
+  const veterinario = await veterinarioService.registrarVeterinario({ nome, crmv, especialidade, email, senha });
   res.status(201).json(veterinario);
 }
+
 
 export async function listar(_req: Request, res: Response): Promise<void> {
   const veterinarios = await veterinarioService.listarVeterinarios();

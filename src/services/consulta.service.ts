@@ -16,7 +16,7 @@ interface AtualizarConsultaInput {
 
 export async function criarConsulta(dados: CriarConsultaInput) {
   const consulta = await prisma.consulta.create({
-    data: dados,
+    data: { ...dados, status: 'AGENDADA' },
     include: { animal: true, veterinario: true }
   });
   return consulta;

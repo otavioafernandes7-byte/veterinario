@@ -46,6 +46,7 @@ model Veterinario {
   crmv          String    @unique
   email         String    @unique
   especialidade String
+  cadastroConcluido Boolean    @default(false)
 
   usuario       Usuario   @relation(fields: [usuarioId], references: [id])
   consultas     Consulta[]

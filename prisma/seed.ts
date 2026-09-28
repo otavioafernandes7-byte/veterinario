@@ -1,13 +1,11 @@
 /// <reference types="node" />
 
-import bcrypt from 'bcryptjs'; 
+import bcrypt from 'bcryptjs';
 import { prisma } from '../src/config/prisma';
 
 async function main() {
-
     console.log('Iniciando o seed da base de dados Clinica Veterinaria....');
-    
-    
+
     const senhaCriptografada = await bcrypt.hash('senha123456789', 10);
 
     console.log('Cadastrando funcionarios...');
@@ -26,21 +24,19 @@ async function main() {
             nome: 'Dr Tiago Gazzoni Tagliabui',
             email: 'tiago.tagliabui@clinica.com',
             senha: senhaCriptografada,
-            tipo: "VETERINARIO",
+            tipo: 'VETERINARIO',
             veterinario: {
                 create: {
-                    crmv: 'CRMV - RJ12345',
-                    email: 'tiago.tagliabui@clinica.com', 
-                    especialidade: 'Clinico Geral'
+                    crmv: 'CRMV-RJ12345',
+                    email: 'tiago.tagliabui@clinica.com',
+                    especialidade: 'Clinico Geral',
                 },
             },
         },
     });
 
     const vet1 = await prisma.veterinario.findUnique({
-        where: {
-            usuarioId: usuarioVet1.id
-        },
+        where: { usuarioId: usuarioVet1.id },
     });
 
     const usuarioVet2 = await prisma.usuario.create({
@@ -48,11 +44,11 @@ async function main() {
             nome: 'Dra Fernanda Silva',
             email: 'fer.vet@clinica.com',
             senha: senhaCriptografada,
-            tipo: 'VETERINARIO',   
+            tipo: 'VETERINARIO',
             veterinario: {
                 create: {
                     crmv: 'CRMV-RJ2222',
-                    email: 'fer.vet@clinica.com', 
+                    email: 'fer.vet@clinica.com',
                     especialidade: 'Ortopedia',
                 },
             },
@@ -60,18 +56,18 @@ async function main() {
     });
 
     const vet2 = await prisma.veterinario.findUnique({
-        where: { usuarioId: usuarioVet2.id }, 
+        where: { usuarioId: usuarioVet2.id },
     });
 
     console.log('Cadastrando clientes...');
 
-   
     const cliente1 = await prisma.cliente.create({
         data: {
             nome: 'Mariana Oliveira',
             cpf: '123.456.789-00',
             email: 'mariana.oliveira@email.com',
             telefone: '(11) 98888-7777',
+            senha: senhaCriptografada,
         },
     });
 
@@ -81,6 +77,7 @@ async function main() {
             cpf: '987.654.321-11',
             email: 'roberto.santos@email.com',
             telefone: '(11) 97777-6666',
+            senha: senhaCriptografada,
         },
     });
 
@@ -116,7 +113,6 @@ async function main() {
         },
     });
 
-    
     console.log('Agendando consultas e gerando prontuários de exemplo...');
 
     if (vet1) {
@@ -155,7 +151,7 @@ main()
     .catch((e) => {
         console.error('Erro ao executar o seed:', e);
         process.exit(1);
-    }) 
+    })
     .finally(async () => {
         await prisma.$disconnect();
     });
